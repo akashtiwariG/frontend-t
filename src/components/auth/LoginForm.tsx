@@ -43,15 +43,9 @@ export default function LoginForm() {
     }
     
     // Only redirect if we have a valid session with a user ID
-    if (status === "authenticated" && session?.user?.id) {
-      console.log("User authenticated with ID, redirecting to dashboard...")
-      setDebugInfo(prev => `${prev}\nAuthenticated with ID! Redirecting...`)
-      
-      // Single redirect with adequate delay
-      setTimeout(() => {
-        router.push("/dashboard")
-      }, 1000)
-    }
+      if (status === "authenticated" && session?.user?.id) {
+        router.replace("/dashboard")
+      }      
   }, [status, session, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,6 +82,7 @@ export default function LoginForm() {
         username: email.trim(),
         password: password.trim(),
         redirect: false,
+        callbackUrl: "/dashboard",
       })
 
       console.log("SignIn result:", result)
@@ -102,7 +97,7 @@ export default function LoginForm() {
           description: "Invalid email or password. Please try again.",
           variant: "destructive",
         })
-      } else if (result?.ok) {
+      } else if (result?.ok && result.url) {
         console.log("Login successful! Waiting for session update...")
         setDebugInfo(prev => `${prev}\nLogin successful! Waiting for session...`)
         
@@ -110,7 +105,7 @@ export default function LoginForm() {
           title: "Success!",
           description: "You have been successfully logged in.",
         })
-        
+        router.push(result.url || "/dashboard") // Redirect to the dashboard or the callback URL
         // The useEffect watching session changes will handle the redirect
       }
     } catch (error) {
